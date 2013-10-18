@@ -1,0 +1,477 @@
+/*      Title:Simple Index File
+	ROLL No:69
+	Batch:S4
+	INDEX FILE
+*/
+
+#include  <stdio.h>
+#include  <conio.h>
+#include <stdlib.h>
+#define RECORDS	 10
+#define TABSIZE  RECORDS*sizeof(index)
+
+typedef struct
+{
+	char name[20],present;
+	int identity;
+	float salary;
+}
+employee;
+
+typedef struct
+{
+	int position,identity;
+}
+index;
+
+FILE *newindex(void);
+void add(FILE *fp,employee refer);
+long nrecords(FILE *fp);
+int moverecords(FILE *fp,int position,int direction);
+int search(FILE *fp,int start,int end,int key);
+void display(FILE *fp);
+void showentry(employee e);
+int delete(FILE *fp);
+
+main()
+{
+	FILE *database;
+	employee sample;
+	int entries,id;
+	index ind;
+
+	database=newindex();
+	while(1)
+	{
+
+		printf("\t\t%s\n\t\t%s\n\t\t%s\n",
+				"-----------------------------------",
+				"Implementation of Simple Index File",
+				"-----------------------------------"
+			  );
+
+		printf("\n\nSelect the operation to be performed :\
+				\n\n1:Add new entry in database\
+				\n2:Search record in file\
+				\n3:Display entire database\
+				\n4:Delete entry\n5:Exit\
+				\n\n\t\t\tChoice selected :");
+
+		fflush(stdin);
+		switch(getche())
+		{
+			case '1':
+				printf("\n\nEnter details of employee :");
+				sample.present=1;
+				printf("\n\nIdentity number :");
+				scanf("%d",&sample.identity);
+				printf("\nName of employee :");
+				fflush(stdin);
+				gets(sample.name);
+				printf("\nSalary of employee :");
+				scanf("%f",&sample.salary);
+				add(database,sample);
+				printf("\n\nSuccess;press any key");
+				break;
+
+			case '2':
+				printf("\n\nID to search :");
+				scanf("%d",&id);
+				fseek(database,0,SEEK_SET);
+				for(entries=0;entries<RECORDS;entries++)
+				{
+					fread(&ind,sizeof(index),1,database);
+					if(ind.identity==-1)	break;
+				}
+				if((id=search(database,0,entries-1,id)) == -1)
+					printf("\n\nRecord not found !");
+				else
+				{
+					printf("\n\nRecord found :");
+					printf("\n\n%-8s%-20s%s\n","ID No.","Name","Salary");
+					fseek(database,id*sizeof(index),SEEK_SET);
+					fread(&ind,sizeof(index),1,database);
+					id=ind.position;
+					fseek(database,TABSIZE+id*sizeof(employee),SEEK_SET);
+					fread(&sample,sizeof(employee),1,database);
+					showentry(sample);
+				}
+				break;
+
+			case '3':
+				display(database);
+				break;
+
+			case '4':
+				if(delete(database)==0)
+				{
+					printf("\n\nDeletion failed !");
+					getch();
+					continue;
+				}
+				printf("\n\nSuccess;press any key");
+				break;
+
+			case '5':
+				exit(0);
+		}
+		getch();
+	}
+}
+
+FILE *newindex(void)
+{
+	index sample={-1,-1};
+	FILE *database;
+	int count;
+
+	if((database=fopen("dDb.dat","r+b")) == NULL)
+	{
+		if((database=fopen("dDb.dat","w+b"))==NULL)
+		{
+			printf("\n\nRecord creation error!");
+			exit(0);
+		}
+
+		for(count=0;count<RECORDS;count++)
+			fwrite(&sample,sizeof(index),1,database);
+	}
+
+	return database;
+}
+
+void add(FILE *fp,employee refer)
+{
+	int count;
+	index object;
+
+	fseek(fp,0,SEEK_SET);
+	for(count=0;count<RECORDS;count++)
+	{
+		fread(&object,sizeof(index),1,fp);
+		if(object.identity>refer.identity || object.identity==-1)
+		  break;
+	}
+	if(count==RECORDS)
+	{
+		printf("\n\nNo space for new record ;");
+		return;
+	}
+
+	if(object.identity == -1)
+	{
+		object.identity=refer.identity;
+		object.position=nrecords(fp);
+
+		fseek(fp,count*sizeof(index),SEEK_SET);
+		fwrite(&object,sizeof(index),1,fp);
+	}
+	else
+	{
+		object.identity=refer.identity;
+		object.position=nrecords(fp);
+
+		if(moverecords(fp,count,1)==0)
+		{
+			printf("\n\nNo space for new record ;");
+			return;
+		}
+		fseek(fp,count*sizeof(index),SEEK_SET);
+		fwrite(&object,sizeof(index),1,fp);
+	}
+
+	fseek(fp,0,SEEK_END);
+	fwrite(&refer,sizeof(refer),1,fp);
+}
+
+int moverecords(FILE *fp,int position,int direction)
+{
+	int count,tomove;
+	index array[RECORDS],object;
+
+
+	fseek(fp,position*sizeof(index),SEEK_SET);
+	for(count=position,tomove=0;count<RECORDS;count++,tomove++)
+	{
+		fread(&object,sizeof(index),1,fp);
+		if(object.identity== -1)	break;
+		array[tomove]=object;
+	}
+	if(count==RECORDS && direction>0)	return 0;
+
+	if(direction<0)
+	{
+		for(count=tomove;count<(tomove-direction);count++)
+			array[count].identity=array[count].position=-1;
+
+		tomove++;
+	}
+
+	fseek(fp,(position+direction)*sizeof(index),SEEK_SET);
+	for(count=0;count<tomove;count++)
+		fwrite(array+count,sizeof(index),1,fp);
+
+	return 1;
+}
+
+long nrecords(FILE *fp)
+{
+	long start,end;
+
+	fseek(fp,RECORDS*sizeof(index),SEEK_SET);
+	start=ftell(fp);
+	fseek(fp,0,SEEK_END);
+	end=ftell(fp);
+
+	return (end-start)/sizeof(employee);
+}
+
+void display(FILE *fp)
+{
+	employee refer;
+	index ind;
+	int count;
+
+	fseek(fp,0,SEEK_SET);
+	printf("\n\nTable:\n");
+	for(count=0;count<RECORDS;count++)
+	{
+		fread(&ind,sizeof(index),1,fp);
+		printf("\n%4d\t%4d",ind.identity,ind.position);
+	}
+
+	fseek(fp,TABSIZE,SEEK_SET);
+	printf("\n\nCurrent status of database :\n");
+	printf("\n\n%-8s%-20s%s\n","ID No.","Name","Salary");
+
+	while(fread(&refer,sizeof(employee),1,fp)==1)
+		if(refer.present==1)
+			showentry(refer);
+}
+
+void showentry(employee e)
+{
+	printf("\n%-8d%-20s%f",e.identity,e.name,e.salary);
+}
+
+int search(FILE *fp,int start,int end,int key)
+{
+	int middle;
+	index ind;
+
+	middle=(start+end)/2;
+	fseek(fp,middle*sizeof(index),SEEK_SET);
+	fread(&ind,sizeof(index),1,fp);
+
+	if(ind.identity==key)	return middle;
+	if(start>=end)		return -1;
+
+	if(key<ind.identity) 	return search(fp,start,middle-1,key);
+	return search(fp,middle+1,end,key);
+
+}
+
+int delete(FILE *fp)
+{
+	int id,entries,position;
+	index ind;
+	employee e;
+
+	printf("\n\nEnter identity number of entry :");
+	scanf("%d",&id);
+
+	rewind(fp);
+	for(entries=0;entries<RECORDS;entries++)
+	{
+		fread(&ind,sizeof(index),1,fp);
+		if(ind.identity==-1)	break;
+	}
+	if((id=search(fp,0,entries-1,id))==-1)	return 0;
+
+	e.present=0;
+
+	fseek(fp,id*sizeof(index),SEEK_SET);
+	fread(&ind,sizeof(index),1,fp);
+	position=ind.position;
+	moverecords(fp,id+1,-1);
+
+	fseek(fp,TABSIZE+position*sizeof(employee),SEEK_SET);
+	fwrite(&e,sizeof(employee),1,fp);
+	return 1;
+}
+/*--------------------------------
+OUTPUT:
+-----------------------------------
+Implementation of Simple Index File
+-----------------------------------
+Select the operation to be performed :
+
+1:Add new entry in database
+2:Search record in file
+3:Display entire database
+4:Delete entry
+5:Exit
+Choice selected :1
+
+Enter details of employee :
+
+Identity number :51
+
+Name of employee :shreyas
+
+Salary of employee :27000
+
+Success;press any key
+-----------------------------------
+Implementation of Simple Index File
+-----------------------------------
+
+Select the operation to be performed :
+
+1:Add new entry in database
+2:Search record in file
+3:Display entire database
+4:Delete entry
+5:Exit
+
+Choice selected :1
+
+Enter details of employee :
+
+Identity number :39
+
+Name of employee :vineet
+
+Salary of employee :27000
+
+Success;press any key
+-----------------------------------
+Implementation of Simple Index File
+-----------------------------------
+Implementation of Simple Index File
+-----------------------------------
+Select the operation to be performed :
+
+1:Add new entry in database
+2:Search record in file
+3:Display entire database
+4:Delete entry
+5:Exit
+Choice selected :3
+
+Table:
+
+  39      1
+  51      0
+  -1      -1
+  -1      -1
+  -1      -1
+  -1      -1
+  -1      -1
+  -1      -1
+
+Current status of database :
+
+
+ID No.  Name                Salary                                              
+
+51      shreyas             27000.000000
+39      vineet              27000.000000                                        
+-----------------------------------
+Implementation of Simple Index File
+  -----------------------------------
+
+Select the operation to be performed :
+                                                                                
+1:Add new entry in database                                                     
+2:Search record in file                                                         
+3:Display entire database                                                       
+4:Delete entry                                                                  
+5:Exit                                                                          
+                                                                                
+Choice selected :2
+                                                                                
+ID to search :51                                                                
+                                                                                
+                                                                                
+Record found :                                                                  
+                                                                                
+ID No.  Name                Salary                                              
+                                                                                
+51      shreyas             27000.000000
+
+
+Select the operation to be performed :
+                                                                                
+1:Add new entry in database                                                     
+2:Search record in file                                                         
+3:Display entire database                                                       
+4:Delete entry                                                                  
+5:Exit                                                                          
+                                                                                
+Choice selected :3
+                                                                                
+Table:                                                                          
+                                                                                
+  39      1
+  -1      -1
+  -1      -1                                                                    
+  -1      -1                                                                    
+  -1      -1                                                                    
+  -1      -1                                                                    
+  -1      -1                                                                    
+                                                                                
+Current status of database :                                                    
+                                                                                
+                                                                                
+ID No.  Name                Salary                                              
+                                                                                
+39      vineet              27000.00000
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                
+                                                                                
+Select the operation to be performed :                                          
+                                                                                
+1:Add new entry in database                                                     
+2:Search record in file                                                         
+3:Display entire database                                                       
+4:Delete entry                                                                  
+5:Exit                                                                          
+                                                                                
+                        Choice selected :4                                      
+                                                                                
+Enter identity number of entry :51                                              
+                                                                                
+                                                                                
+Success;press any key           -----------------------------------             
+                Implementation of Simple Index File                             
+                -----------------------------------                             
+                                                                                
+                                                                                
+Select the operation to be performed :                                          
+                                                                                
+1:Add new entry in database                                                     
+2:Search record in file                                                         
+3:Display entire database                                                       
+4:Delete entry                                                                  
+5:Exit                                                                          
+                                                                                
+                        Choice selected :5                                      
+
+
+
+*/

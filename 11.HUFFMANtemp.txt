@@ -1,0 +1,318 @@
+/********************************************
+Assignment No-> 11
+Title-> Huffman's Algorithm
+Roll No.-> 66
+Name-> Devang Shah
+********************************************/
+
+
+#include<stdio.h>
+#include<conio.h>
+
+typedef struct sll
+{
+	struct tree *data;
+	struct sll *next;
+}node;
+
+typedef struct tree
+{
+	char ch;
+	int freq;
+	struct tree *left;
+	struct tree *right;
+}tree;
+
+tree* gettree();
+node* getnode();
+void preorder(tree *,int,char);
+
+
+node* insert(node *,tree *);
+node* sort(node*);
+node* huff(node*);
+
+char msg[10],msg1[50];
+
+void main()
+{
+	int option,i,len,f;
+	char cch,str[10],ch;
+	node *head=NULL;
+	tree *temp;
+	do
+	{
+		clrscr();
+		printf("\n\n\t\tHuffman's Algotrithm");
+		printf("\n\t\t--------------------");
+		printf("\n\t0. Exit");
+		printf("\n\t1. Create Huffman tree");
+		printf("\n\t2. Encode a message");
+		printf("\nEnter your choice: ");
+		scanf("%d",&option);
+		switch(option)
+		{
+			case 1:
+					clrscr();
+
+					printf("\nEnter the character: ");
+					flushall();
+					scanf("%c",&ch);
+					if(isExist(head,ch)==0)
+					{
+						printf("\nEnter the frequency: ");
+						scanf("%d",&f);
+						while(f<0)
+						{
+							printf("\nEnter the +ve frequency: ");
+							scanf("%d",&f);
+						}
+						temp=gettree();
+						temp->ch=ch;
+						temp->freq=f;
+						head=insert(head,temp);
+					}
+					break;
+			case 2:
+					clrscr();
+					flushall();
+					head=sort(head);
+					head=huff(head);
+					temp=head->data;
+					printf("\nEnter the message to be encoded: ");
+					flushall();
+					scanf("%s",str);
+					msg1[0]='\0';
+					i=0;
+					printf("\nCharacter \t Bit Pattern \t Frequency");
+					printf("\n--------- \t ----------- \t ---------");
+					len=strlen(str);
+					do
+					{
+						cch=str[i];
+						preorder(temp,0,cch);
+						i++;
+					}while(len!=i);
+					printf("\n\nThe coded message is: %s",msg1);
+					flushall();
+					getch();
+					break;
+		}
+	}while(option!=0);
+}
+tree* gettree()
+{
+	tree *p;
+	p=(tree*)malloc(sizeof(tree));
+	p->left=p->right=NULL;
+	return p;
+}
+node* getnode()
+{
+	node *p;
+	p=(node*)malloc(sizeof(node));
+	p->next=NULL;
+	return p;
+}
+int isExist(node *head,char ch)
+{
+	node *temp;
+	if(head==NULL)
+		return 0;
+	else
+	{
+		temp=head;
+		while(temp!=NULL)
+		{
+			if(temp->data->ch==ch)
+			{
+				printf("\nThis character already exist!!!\n");
+				getch();
+				return 1;
+			}
+			temp=temp->next;
+		}
+	}
+	return 0;
+}
+
+void preorder(tree *temp,int i,char cch)
+{
+	if(temp!=NULL)
+	{
+		if(temp->ch==cch)
+		{
+			msg[i]='\0';
+			printf("\n%c \t\t %s \t\t %d",cch,msg,temp->freq);
+			strcat(msg1,msg);
+		}
+		msg[i]='0';
+		preorder(temp->left,i+1,cch);
+		msg[i]='1';
+		preorder(temp->right,i+1,cch);
+	}
+}
+node* insert(node *head,tree *temp)
+{
+	node *head1;
+	if(head==NULL)
+	{
+		head=getnode();
+		head->data=temp;
+		head->next=NULL;
+	}
+	else
+	{
+		head1=head;
+		while(head1->next!=NULL)
+			head1=head1->next;
+		head1->next=getnode();
+		head1=head1->next;
+		head1->data=temp;
+		head1->next=NULL;
+	}
+	return head;
+}
+
+node* sort(node *head)
+{
+	node *p,*q;
+	tree *temp;
+	for(p=head;p->next!=NULL;p=p->next)
+		for(q=head;q->next!=NULL;q=q->next)
+			if(q->data->freq>q->next->data->freq)
+			{
+				temp=q->data;
+				q->data=q->next->data;
+				q->next->data=temp;
+			}
+			return head;
+}
+
+node* huff(node* head)
+{
+	tree *temp;
+	do
+	{
+		temp=gettree();
+		temp->left=head->data;
+		temp->right=head->next->data;
+		head=head->next->next;
+		temp->freq=temp->left->freq+temp->right->freq;
+		temp->ch='0';
+		head=insert(head,temp);
+		head=sort(head);
+	}while(head->next!=NULL);
+	return head;
+}
+/**********************************OUTPUT****************************
+
+                Huffman's Algotrithm
+                --------------------
+        0. Exit
+        1. Create Huffman tree
+        2. Encode a message
+Enter your choice: 1
+
+Enter the character: a
+
+Enter the frequency: 7
+
+                Huffman's Algotrithm
+                --------------------
+        0. Exit
+        1. Create Huffman tree
+        2. Encode a message
+Enter your choice: 1
+
+Enter the character: b
+
+Enter the frequency: 9
+
+                Huffman's Algotrithm
+                --------------------
+        0. Exit
+        1. Create Huffman tree
+        2. Encode a message
+Enter your choice: 1
+
+Enter the character: c
+
+Enter the frequency: 12
+
+                Huffman's Algotrithm
+                --------------------
+        0. Exit
+        1. Create Huffman tree
+        2. Encode a message
+Enter your choice: 1
+
+Enter the character: d
+
+Enter the frequency: 22
+
+                Huffman's Algotrithm
+                --------------------
+        0. Exit
+        1. Create Huffman tree
+        2. Encode a message
+Enter your choice: 1
+
+Enter the character: e
+
+Enter the frequency: 23
+
+                Huffman's Algotrithm
+                --------------------
+        0. Exit
+        1. Create Huffman tree
+        2. Encode a message
+Enter your choice: 1
+
+Enter the character: f
+
+Enter the frequency: 27
+
+
+                Huffman's Algotrithm
+                --------------------
+        0. Exit
+        1. Create Huffman tree
+        2. Encode a message
+Enter your choice: 2
+
+
+Enter the message to be encoded: abcdef
+
+Character        Bit Pattern     Frequency
+---------        -----------     ---------
+a                1110            7
+b                1111            9
+c                110             12
+d                00              22
+e                01              23
+f                10              27
+
+The coded message is: 11101111110000110
+
+
+                Huffman's Algotrithm
+                --------------------
+        0. Exit
+        1. Create Huffman tree
+        2. Encode a message
+Enter your choice: 2
+
+
+Enter the message to be encoded: cdef
+
+Character        Bit Pattern     Frequency
+---------        -----------     ---------
+c                0110            12
+d                000             22
+e                001             23
+f                010             27
+
+The coded message is: 0110000001010
+
+*/

@@ -1,0 +1,548 @@
+/*****************************************************
+Assignment No.- 01
+Title- Operations on Binary tree
+Name- Devang Arvind Shah
+Roll no.- 66
+Class- S.E(IT)
+*****************************************************/
+
+#include<stdio.h>
+#include<conio.h>
+typedef struct bTree
+{
+	struct bTree *left;
+	int data;
+	struct bTree *right;
+}bTree;
+bTree* getNode();
+void insert(bTree **);
+void del(bTree *);
+void preorder(bTree *);
+void inorder(bTree *);
+void postorder(bTree *);
+bTree* search(bTree *,int);
+void main()
+{
+	int ch,key;
+	bTree *root,*found;
+	root=NULL;
+	do
+	{
+		clrscr();
+			printf("\t\tBinary Tree Program");
+			printf("\n\t\t0. Exit");
+			printf("\n\t\t1. Insert Node");
+			printf("\n\t\t2. Delete Node");
+			printf("\n\t\t3. Preorder Display");
+			printf("\n\t\t4. Inorder Display");
+			printf("\n\t\t5. Postorder Display");
+			printf("\n\t\t6. Search");
+			printf("\n\t\tYour Choice-> ");
+			scanf("%d",&ch);
+			switch(ch)
+			{
+				case 1:
+					insert(&root);
+					break;
+				case 2:
+					clrscr();
+					del(root);
+					getch();
+					break;
+				case 3:
+					clrscr();
+					printf("\nPreoder Printing\n\n");
+					preorder(root);
+					getch();
+					break;
+				case 4:
+					clrscr();
+					printf("\nInoder Printing\n\n");
+					inorder(root);
+					getch();
+					break;
+				case 5:
+					clrscr();
+					printf("\nPostoder Printing\n\n");
+					postorder(root);
+					getch();
+					break;
+				case 6:
+					printf("\nEnter the data to search\n");
+					scanf("%d",&key);
+					found=search(root,key);
+					if(found==NULL)
+						printf("\nNot Found");
+					else
+						printf("\nFound");
+					getch();
+					break;
+			}
+		}while(ch!=0);
+}
+bTree* getNode()
+{
+	return (bTree *)malloc(sizeof(bTree));
+}
+void insert(bTree **n)
+{
+	bTree *temp,*temp1,*temp2;
+	int d;
+	clrscr();
+	printf("\nEnter the data for new node in binary tree \n");
+	scanf("%d",&d);
+	temp=getNode();
+	temp1=*n;
+	temp->left=NULL;
+	temp->data=d;
+	temp->right=NULL;
+
+	if(*n==NULL)
+	{
+		*n=temp;
+	}
+	else
+	{
+		temp2=temp1;
+		while(temp2!=NULL) //this condi is useful whn node is deleted
+		{
+			if(temp2->data<d)
+			{
+				temp1=temp2;
+				temp2=temp2->right;
+			}
+			else
+			{
+				temp1=temp2;
+				temp2=temp2->left;
+			}
+		}
+		if(temp1->data<d)
+		{
+			temp1->right=temp;
+		}
+		else
+		{
+			temp1->left=temp;
+		}
+	}
+}
+void inorder(bTree *n)
+{
+	if(n!=NULL)
+	{
+		inorder(n->left);
+		printf("%d ",n->data);
+		inorder(n->right);
+	}
+}
+void preorder(bTree *n)
+{
+	if(n!=NULL)
+	{
+		printf("%d ",n->data);
+		preorder(n->left);
+		preorder(n->right);
+	}
+}
+void postorder(bTree *n)
+{
+	if(n!=NULL)
+	{
+		postorder(n->left);
+		postorder(n->right);
+		printf("%d ",n->data);
+	}
+}
+bTree* search(bTree *n,int key)
+{
+		bTree *temp,*temp1;
+		temp=n;
+		if(n==NULL)
+		{
+			printf("\nBinary tree is empty.");
+			getch();
+			return NULL;
+		}
+		else
+		{
+			while(temp!=NULL)
+			{
+				if(temp->data<key)
+				{
+					temp=temp->right;
+				}
+				else if(temp->data>key)
+				{
+					temp=temp->left;
+				}
+				else if(temp->data==key)
+				{
+					return temp;
+				}
+			}
+
+		}
+		return NULL;
+}
+void del(bTree *root)
+{
+	int d;
+	bTree *temp,*parent,*dp;
+
+	if(root==NULL)
+	{
+		printf("Binary Tree is empty.");
+		return;
+	}
+	inorder(root);
+	printf("\nEnter the data u want to delete : ");
+	scanf("%d",&d);
+	parent=NULL;
+	temp=root;
+
+	while(temp!=NULL)
+	{
+		if(temp->data==d)
+			break;
+		parent=temp;
+		if(d < temp->data)
+			temp=temp->left;
+		else
+			temp=temp->right;
+	}
+	if(temp==NULL)
+	{
+		printf("\n%d Not Found.",d);
+		return;
+	}
+
+	/*Deletion of node having no children*/
+	if(temp->left==NULL && temp->right==NULL)
+	{
+		if(temp==root)
+		{
+			root=NULL;
+			free(temp);
+			return;
+		}
+		if(temp->data < parent->data)
+			parent->left=NULL;
+		else
+			parent->right=NULL;
+
+		free(temp);
+		return;
+	}
+	/*node having 2 children*/
+	if(temp->left!=NULL && temp->right!=NULL)
+	{
+		dp=temp->left;
+		if(dp->right==NULL)
+		{
+			temp->left=dp->left;
+			temp->data=dp->data;
+			free(dp);
+		}
+		else
+		{
+			while(dp->right!=NULL)
+			{
+				parent=dp;
+				dp=dp->right;
+			}
+			parent->right=dp->left;
+			temp->data=dp->data;
+			free(dp);
+		}
+		return;
+	}
+	/*node having 1 child*/
+	if(temp->left!=NULL || temp->right!=NULL)
+	{
+		if(parent->data<temp->data)
+			if(temp->left!=NULL)
+				parent->right=temp->left;
+			else
+				parent->right=temp->right;
+		else
+			if(temp->left!=NULL)
+				parent->left=temp->left;
+			else
+				parent->left=temp->right;
+		free(temp);
+	}
+
+}
+
+/******************************************OUTPUT******************************************/
+                Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+40
+                Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+30
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+90
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+10
+		
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+35
+
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+60
+
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+110
+
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+32
+
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+50
+
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+75
+
+		
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 1
+
+Enter the data for new node in binary tree
+150
+
+		
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 4
+
+
+Inoder Printing
+
+10 30 32 35 40 50 60 75 90 110 150
+
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 3
+
+
+Preoder Printing
+
+40 30 10 35 32 90 60 50 75 110 150
+
+		
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 5
+
+
+Postoder Printing
+
+10 32 35 30 50 75 60 150 110 90 40
+
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 2
+
+10 30 32 35 40 50 60 75 90 110 150
+Enter the data u want to delete : 50
+
+
+Preoder Printing
+
+40 30 10 35 32 90 60 75 110 150
+
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 2
+
+10 30 32 35 40 50 60 75 90 110 150
+Enter the data u want to delete : 35
+
+
+Preorder Printing
+
+40 30 10 32 90 60 75 110 150
+
+
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 2
+
+10 30 32 40 60 75 90 110 150
+Enter the data u want to delete : 90
+
+
+Preoder Printing
+
+40 30 10 32 75 60 110 150
+
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 6
+
+
+Enter the data to search
+32
+
+Found
+		
+		Binary Tree Program
+                0. Exit
+                1. Insert Node
+                2. Delete Node
+                3. Display in preorder
+                4. Display in inorder
+                5. Display in postorder
+                6. Search
+                Your Choice : 0
+
+*/

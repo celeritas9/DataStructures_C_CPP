@@ -1,0 +1,145 @@
+/**************************************************
+Assignment No.-> 6
+Title-> Heap sort using arrays
+Name-> Devang Arvind Shah
+Roll No.-> 66
+**************************************************/
+
+
+#include <stdio.h>
+#include <conio.h>
+#define MAX 20
+
+void makeheap(int [],int);
+void heapsort(int [],int);
+
+void main()
+{
+	int arr[MAX],i,n ;
+	clrscr();
+	printf("Heap Sort\n");
+	printf("---------\n");
+	printf("How many elements to sort->\t");
+	scanf("%d",&n);
+	printf("\n\nEnter the elements: ");
+	for(i=0;i<10;i++)
+		scanf("%d",&arr[i]);
+
+	makeheap(arr,n);         //initially heap created
+
+	printf ("\n\nInitially heap:\n");
+	for(i=0;i<=9;i++)
+		printf("%d  ",arr[i]);
+
+	heapsort(arr,10);        //process of sorting starts
+	printf("\n\n-------------------------------");
+	printf("\n\nAfter Sorting:\n");
+	for(i=0;i<=9;i++)
+		printf("%d  ",arr[i]);
+
+	getch();
+}
+
+void makeheap(int x[],int n)
+{
+	int i,val,s,f;
+	for(i=1;i<n;i++)
+	{
+		val=x[i];
+		s=i;
+		f=(s-1)/2;
+		while(s>0 && x[f]<val)
+		{
+			x[s]=x[f];
+			s=f;
+			f=(s-1)/2;
+		}
+		x[s] = val ;
+	}
+}
+
+void heapsort(int x[],int n)
+{
+	int i,s,f,ivalue;
+	int p;
+	for(i=n-1;i>0;i--)
+	{
+		ivalue=x[i];
+		x[i]=x[0];
+		f=0;
+		if(i==1)
+			s=-1;
+		else
+			s=1;
+		if(i>2 && x[2]>x[1])
+			s=2;
+		while(s>=0 && ivalue<x[s])
+		{
+			x[f]=x[s];
+			f=s;
+			s=2*f+1;
+			if(s+1<=i-1 && x[s]<x[s + 1])
+				s++ ;
+			if(s>i-1)
+				s=-1;
+		}
+		x[f]=ivalue;
+		printf("\n\nHeap after pass->  %d\n\n",n-i);
+		for(p=0;p<n;p++)
+			printf("%d  ",x[p]);
+	}
+}
+/*
+/********************************************OUTPUT*******************************************
+Heap Sort
+---------
+How many elements to sort->     10
+
+
+Enter the elements: 56 31 12 8 9 4 90 45 32 21
+
+
+Initially heap:
+90  45  56  32  21  4  12  8  31  9
+
+Heap after pass->  1
+
+56  45  12  32  21  4  9  8  31  90
+
+Heap after pass->  2
+
+45  32  12  31  21  4  9  8  56  90
+
+Heap after pass->  3
+
+32  31  12  8  21  4  9  45  56  90
+
+Heap after pass->  4
+
+31  21  12  8  9  4  32  45  56  90
+
+Heap after pass->  5
+
+21  9  12  8  4  31  32  45  56  90
+
+Heap after pass->  6
+
+12  9  4  8  21  31  32  45  56  90
+
+Heap after pass->  7
+
+9  8  4  12  21  31  32  45  56  90
+
+Heap after pass->  8
+
+8  4  9  12  21  31  32  45  56  90
+
+Heap after pass->  9
+
+4  8  9  12  21  31  32  45  56  90
+
+-----------------------------------
+
+After Sorting:
+4  8  9  12  21  31  32  45  56  90
+*/
